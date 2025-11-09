@@ -1,0 +1,490 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sınırsız Motivasyon</title>
+  <style>
+    :root{
+      --bg:#0f1724;
+      --card:#0b1220;
+      --accent:#ffb86b;
+      --muted:#94a3b8;
+      --glass: rgba(255,255,255,0.03);
+      font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100vh;
+      background:linear-gradient(180deg,#061026 0%, #071426 50%, #071826 100%);
+      color:#e6eef8;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+    }
+    .app{
+      width:100%;
+      max-width:920px;
+      background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius:14px;
+      box-shadow: 0 10px 30px rgba(2,6,23,0.7);
+      padding:28px;
+      border:1px solid rgba(255,255,255,0.03);
+    }
+    header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      margin-bottom:18px;
+    }
+    header h1{
+      margin:0;
+      font-size:20px;
+      letter-spacing:0.2px;
+    }
+    header p{margin:0;color:var(--muted);font-size:13px}
+    .controls{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    select, button, input[type="checkbox"]{
+      background:var(--card);
+      color:inherit;
+      border:1px solid rgba(255,255,255,0.04);
+      padding:8px 12px;
+      border-radius:8px;
+      font-size:14px;
+    }
+    .quoteCard{
+      margin-top:16px;
+      padding:26px;
+      border-radius:12px;
+      background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      min-height:140px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      gap:14px;
+      position:relative;
+      border:1px solid rgba(255,255,255,0.02);
+    }
+    .quoteText{
+      font-size:22px;
+      line-height:1.25;
+      font-weight:600;
+      color:#f6f9ff;
+    }
+    .quoteAuthor{
+      font-size:13px;
+      color:var(--muted);
+      text-align:right;
+    }
+    .actions{
+      display:flex;
+      gap:8px;
+      margin-top:8px;
+      align-items:center;
+    }
+    .btn{
+      background:transparent;
+      border:1px solid rgba(255,255,255,0.06);
+      color:inherit;
+      padding:8px 12px;
+      border-radius:10px;
+      cursor:pointer;
+    }
+    .btn.primary{
+      background:linear-gradient(90deg,#ffb86b,#ff7a7a);
+      color:#061020;
+      border:none;
+      font-weight:700;
+    }
+    .small{font-size:13px;padding:6px 10px;border-radius:8px}
+    .favorites{
+      margin-top:18px;
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .favChip{
+      background:var(--glass);
+      border-radius:8px;
+      padding:8px 12px;
+      font-size:13px;
+      color:var(--muted);
+      border:1px solid rgba(255,255,255,0.02);
+    }
+    footer{margin-top:14px;color:var(--muted);font-size:13px}
+    @media (max-width:640px){
+      .quoteText{font-size:18px}
+    }
+  </style>
+</head>
+<body>
+  <div class="app" role="main" aria-live="polite">
+    <header>
+      <div>
+        <h1>Sınırsız Motivasyon</h1>
+        <p>Harekete geçiren, işe koyulmanı sağlayan motive edici sözler — sonsuz kombinasyonlarla.</p>
+      </div>
+      <div class="controls" aria-hidden="false">
+        <label>
+          Kategori:
+          <select id="category">
+            <option value="work">Çalışma</option>
+            <option value="focus">Odak</option>
+            <option value="courage">Cesaret</option>
+            <option value="discipline">Disiplin</option>
+            <option value="custom">Rastgele</option>
+          </select>
+        </label>
+        <label title="Otomatik üretimi aç/kapat">
+          <input type="checkbox" id="autoplay"> Otomatik
+        </label>
+        <label>
+          Hız (ms):
+          <select id="speed">
+            <option value="2500">2.5s</option>
+            <option value="4000" selected>4s</option>
+            <option value="7000">7s</option>
+          </select>
+        </label>
+      </div>
+    </header>
+
+    <div class="quoteCard" id="card">
+      <div class="quoteText" id="quote">Hazır mısın? Başlamak için "Yeni Söz" butonuna tıkla.</div>
+      <div class="quoteAuthor" id="author">— Sınırsız Motivasyon</div>
+
+      <div class="actions">
+        <button class="btn primary" id="newBtn">Yeni Söz</button>
+        <button class="btn" id="copyBtn">Kopyala</button>
+        <button class="btn" id="favBtn">⭐ Favorilere Ekle</button>
+        <button class="btn" id="shareBtn">Paylaş</button>
+        <button class="btn small" id="toastBtn">İlham Modu</button>
+      </div>
+    </div>
+
+    <div class="favorites" id="favorites" aria-live="polite" aria-atomic="true"></div>
+
+    <footer>
+      <div>YouTube: @MTechnoW Abone ol. :)</div>
+    </footer>
+  </div>
+
+  <script>
+    // Veri: şablonlar + kelime havuzları (çok genişletilebilir)
+    const templates = [
+      "{action} ve {result}. Bugün başla, yarın teşekkür et.",
+      "Her {unit} bir adım; {action} ile {result}.",
+      "{imperative}, çünkü {reason}.",
+      "Başarı {quality} değil, {habit} ile inşa edilir.",
+      "{smallStep} yap — büyük farkı gör.",
+      "{action} şimdi, pişmanlık değil gurur biriktir."
+    ];
+
+    const pools = {
+      action: [
+        "Kalk ve işe koyul", "Planını yaz", "Tek bir sayfa daha çalış", "Dünya kadar sürünen düşünmeyi bırak",
+        "Harekete geç", "Bir görev seç ve bitir", "Hatalarından öğren"
+      ],
+      result: [
+        "hedefine yaklaşırsın", "güçlenirsin", "daha fazlasını başarabilirsin", "özgüvenin artar",
+        "borçtan özgürlüğe giden yolu açarsın", "zaman senin dostun olur"
+      ],
+      unit: [
+        "küçük adım", "gün", "saat", "deneme", "okuma", "tekrar"
+      ],
+      imperative: [
+        "Harekete geç", "Sözünü tut", "Erteleme", "Kendine inan", "Durdurma"
+      ],
+      reason: [
+        "başlamak bitirmenin yarısıdır", "zaman beklemez", "küçük çabalar büyük sonuç verir",
+        "dün değil, bugün değerlidir"
+      ],
+      quality: [
+        "şans", "yetenek", "rastlantı"
+      ],
+      habit: [
+        "günlük çabayla", "küçük ama sürekli çalışmalarla", "disiplinle"
+      ],
+      smallStep: [
+        "Sadece 10 dakika", "Bir paragraf yaz", "Bir görev seç ve 15 dak. çalış",
+        "Küçük bir karar al"
+      ],
+      authorTag: [
+        "Sistem", "Kendin", "Bugün", "İrade",
+        "Alıştırma", "Rutin"
+      ],
+      adjectives:[
+        "alışkanlık", "tutku", "kararlılık", "azim", "süreklilik"
+      ]
+    };
+
+    // Kategoriye özel ek şablonlar / havuzlar (isteğe göre daha da genişlet)
+    const categories = {
+      work:{templates:[],pools:{}},
+      focus:{templates:["{action} — dikkatini {focusOn} odakla."] , pools:{focusOn:["tek bir işe","hedefine","bugün yapacaklarına"]}},
+      courage:{templates:["{imperative} ve {result}. Cesaret, küçük adımlarda saklı."],pools:{}},
+      discipline:{templates:["{action} Her gün tekrarla; {result} seni bekliyor."],pools:{}}
+    };
+
+    // Rastgele seçici
+    function rand(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+    // Şablondan sözü üret
+    function generateQuote(category='custom'){
+      // temel havuzları kopyala
+      const p = JSON.parse(JSON.stringify(pools));
+
+      // kategori havuzlarını ekle (varsa)
+      if(categories[category]){
+        const cat = categories[category];
+        if(cat.pools){
+          for(const k in cat.pools){
+            if(!p[k]) p[k] = [];
+            p[k] = p[k].concat(cat.pools[k]);
+          }
+        }
+      }
+
+      // şablon seç
+      let tmpl = rand(templates);
+      if(category !== 'custom' && categories[category] && categories[category].templates.length){
+        // bazen kategori şablonunu da kullan
+        if(Math.random() < 0.7) tmpl = rand(categories[category].templates);
+      }
+
+      // parola: template içindeki {key} yerlerini doldur
+      const filled = tmpl.replace(/\{([a-zA-Z0-9_]+)\}/g, (m,k)=>{
+        if(p[k] && p[k].length) return rand(p[k]);
+        // varsayılan davranış: anahtarın kendisini küçük bir biçimde döndür
+        return k;
+      });
+
+      // author / kaynak oluştur
+      const author = rand(pools.authorTag);
+
+      return {text:normalizeSentence(filled), author};
+    }
+
+    // Cümle sonlandırma, büyük harf, noktalama düzeltmeleri
+    function normalizeSentence(s){
+      let t = s.trim();
+      // küçük harften başlıyorsa büyük yap
+      t = t.replace(/^([a-zçğıöşü])/i, (m)=>m.toUpperCase());
+      // eğer son nokta yoksa ekle
+      if(!/[.!?]$/.test(t)) t += ".";
+      return t;
+    }
+
+    // UI elemanları
+    const quoteEl = document.getElementById('quote');
+    const authorEl = document.getElementById('author');
+    const newBtn = document.getElementById('newBtn');
+    const copyBtn = document.getElementById('copyBtn');
+    const favBtn = document.getElementById('favBtn');
+    const shareBtn = document.getElementById('shareBtn');
+    const categorySel = document.getElementById('category');
+    const autoplayCb = document.getElementById('autoplay');
+    const speedSel = document.getElementById('speed');
+    const favoritesDiv = document.getElementById('favorites');
+    const toastBtn = document.getElementById('toastBtn');
+
+    let autoplayInterval = null;
+    let current = null;
+
+    function showQuote(q){
+      current = q;
+      quoteEl.textContent = q.text;
+      authorEl.textContent = "— " + q.author;
+    }
+
+    function produceAndShow(){
+      const cat = categorySel.value;
+      const q = generateQuote(cat);
+      showQuote(q);
+    }
+
+    // Başlangıç
+    produceAndShow();
+
+    newBtn.addEventListener('click', produceAndShow);
+    copyBtn.addEventListener('click', async ()=>{
+      if(!current) return;
+      try{
+        await navigator.clipboard.writeText(`${current.text} — ${current.author}`);
+        showToast("Kopyalandı");
+      } catch(e){
+        showToast("Kopyalama desteklenmiyor");
+      }
+    });
+
+    favBtn.addEventListener('click', ()=>{
+      if(!current) return;
+      addFavorite(current);
+    });
+
+    shareBtn.addEventListener('click', async ()=>{
+      if(!current) return;
+      const shareText = `${current.text} — ${current.author}`;
+      if(navigator.share){
+        try{
+          await navigator.share({title:"Motivasyon", text:shareText});
+        }catch(e){
+          showToast("Paylaşım iptal edildi");
+        }
+      } else {
+        // fallback: kopyala
+        try{ await navigator.clipboard.writeText(shareText); showToast("Paylaşım metni kopyalandı"); }
+        catch(e){ showToast("Paylaşma desteklenmiyor"); }
+      }
+    });
+
+    categorySel.addEventListener('change', produceAndShow);
+
+    autoplayCb.addEventListener('change', ()=>{
+      if(autoplayCb.checked){
+        startAutoplay();
+      } else stopAutoplay();
+    });
+
+    speedSel.addEventListener('change', ()=>{
+      if(autoplayCb.checked) {
+        stopAutoplay();
+        startAutoplay();
+      }
+    });
+
+    function startAutoplay(){
+      const ms = parseInt(speedSel.value,10) || 4000;
+      autoplayInterval = setInterval(()=> produceAndShow(), ms);
+      showToast("Otomatik üretim açıldı");
+    }
+    function stopAutoplay(){
+      if(autoplayInterval) clearInterval(autoplayInterval);
+      autoplayInterval = null;
+      showToast("Otomatik üretim kapandı");
+    }
+
+    // Favoriler: localStorage
+    const LS_KEY = "sinirsiz_motivasyon_favs_v1";
+    function loadFavorites(){
+      try{
+        const raw = localStorage.getItem(LS_KEY);
+        return raw ? JSON.parse(raw) : [];
+      }catch(e){ return []; }
+    }
+    function saveFavorites(list){
+      try{ localStorage.setItem(LS_KEY, JSON.stringify(list)); }catch(e){}
+    }
+    function addFavorite(q){
+      const list = loadFavorites();
+      // benzersizleştir: aynı metin varsa ekleme
+      if(list.some(x=>x.text===q.text)) { showToast("Zaten favorilerde"); return; }
+      list.unshift(q);
+      if(list.length>30) list.pop();
+      saveFavorites(list);
+      renderFavorites();
+      showToast("Favorilere eklendi");
+    }
+    function removeFavoriteIndex(i){
+      const list = loadFavorites();
+      list.splice(i,1);
+      saveFavorites(list);
+      renderFavorites();
+    }
+    function renderFavorites(){
+      const list = loadFavorites();
+      favoritesDiv.innerHTML = "";
+      if(list.length===0){
+        favoritesDiv.innerHTML = '<div class="favChip">Henüz favorin yok — ⭐ ekle</div>';
+        return;
+      }
+      list.forEach((f,i)=>{
+        const chip = document.createElement('div');
+        chip.className = 'favChip';
+        chip.innerHTML = `<strong style="color:var(--accent);display:block">${truncate(f.text,60)}</strong>
+                          <small style="display:block;color:var(--muted)">— ${f.author}</small>
+                          <div style="margin-top:6px;display:flex;gap:6px">
+                            <button class="small" onclick='copyFromFav(${i})'>Kopyala</button>
+                            <button class="small" onclick='useFav(${i})'>Kullan</button>
+                            <button class="small" onclick='removeFav(${i})'>Sil</button>
+                          </div>`;
+        favoritesDiv.appendChild(chip);
+      });
+    }
+
+    function truncate(s,n){ return s.length>n ? s.slice(0,n-1)+"…" : s; }
+
+    // Fonksiyonları global yapıyoruz ki buton onclick ile erişebilsin
+    window.copyFromFav = function(i){
+      const list = loadFavorites();
+      const f = list[i];
+      if(!f) return showToast("Bulunamadı");
+      navigator.clipboard?.writeText(`${f.text} — ${f.author}`).then(()=>showToast("Kopyalandı")).catch(()=>showToast("Kopyalama başarısız"));
+    };
+    window.useFav = function(i){
+      const list = loadFavorites();
+      const f = list[i];
+      if(!f) return showToast("Bulunamadı");
+      showQuote(f);
+    };
+    window.removeFav = function(i){
+      if(!confirm("Favoriden silinsin mi?")) return;
+      removeFavoriteIndex(i);
+      showToast("Silindi");
+    };
+
+    // Toast / geçici bildirim
+    let toastTimer = null;
+    function showToast(txt){
+      // küçük ekran sabit toast
+      clearTimeout(toastTimer);
+      const div = document.createElement('div');
+      div.style.position='fixed';
+      div.style.right='18px';
+      div.style.bottom='18px';
+      div.style.background='rgba(0,0,0,0.6)';
+      div.style.color='white';
+      div.style.padding='10px 14px';
+      div.style.borderRadius='10px';
+      div.style.fontSize='13px';
+      div.style.boxShadow='0 6px 18px rgba(0,0,0,0.6)';
+      div.textContent = txt;
+      document.body.appendChild(div);
+      toastTimer = setTimeout(()=>{ div.remove(); },1800);
+    }
+
+    // İlham modu: ardışık 5 söz hızlıca göster
+    toastBtn.addEventListener('click', async ()=>{
+      const count = 5;
+      const delay = 1200;
+      for(let i=0;i<count;i++){
+        produceAndShow();
+        await new Promise(r=>setTimeout(r,delay));
+      }
+      showToast("İlham modu bitti");
+    });
+
+    // Başlangıç: favorileri yükle
+    renderFavorites();
+
+    // Kullanıcıya ilk açılışta kısa bir öneri
+    setTimeout(()=> showToast("Yeni Söz ile hemen motive ol — Otomatik ile akışa bırak."),900);
+
+    // Accessibility: klavye kısayolları
+    document.addEventListener('keydown', (e)=>{
+      if(e.key === ' ') { e.preventDefault(); produceAndShow(); }
+      if(e.key === 'f') { addFavorite(current); }
+      if(e.key === 'a') { autoplayCb.checked = !autoplayCb.checked; autoplayCb.dispatchEvent(new Event('change')); }
+    });
+
+  </script>
+</body>
+</html>
